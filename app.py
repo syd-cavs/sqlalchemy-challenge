@@ -1,10 +1,9 @@
 import numpy as np
-
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
-
+import datetime as dt
 from flask import Flask, jsonify
 
 
@@ -32,14 +31,23 @@ def home_page():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     session = Session(engine)
-    results = session.query(Passenger.name).all()
-
+    rainfall = session.query(measurement.date, measurement.prcp).all()
     session.close()
+    
+    year_ago = dt.date(2017,8,23) - dt.timedelta(days = 365)
+    last_day = session.query(measurement.date).order_by(measurement.date.desc()).first()
+    precipitation = session.query(measurement.date, measurement.prcp).\
+    filter(measurement.date > year_ago).order_by(measurement.date).all()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
 
-    return jsonify(all_names)
+    precipitation = []
+    for date, prcp in rainfall:
+        prcp_dict = {}
+        prcp_dict["Date"] = date
+        prcp_dict["Precipitation"] = prcp
+        precipitation.append(prcp_dict)
+
+    return jsonify([precipitation])
 
 
 @app.route("/api/v1.0/stations")
@@ -53,19 +61,18 @@ def stations():
 
 @app.route("/api/v1.0/tobs")
 def tobs():
-    # Create our session (link) from Python to the DB
     session = Session(engine)
-
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Passenger.name).all()
-
+    tobs_results = session.query(measurement.date, measurement.tobs).all()
     session.close()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
+    tobs_tobs = []
+    for date, tobs in tobs_results:
+        tobs_dict = {}
+        tobs_dict["Date"] = date
+        tobs_dict["Observations"] = tobs
+        precipitation.append(tobs_dict)
 
-    return jsonify(all_names)
+    return jsonify([tobs_tobs])
 
 if __name__ == '__main__':
     app.run(debug=True)
