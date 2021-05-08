@@ -31,17 +31,13 @@ def home_page():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     session = Session(engine)
-    rainfall = session.query(measurement.date, measurement.prcp).all()
+    prcp_results = session.query(measurement.date, measurement.prcp).all()
     session.close()
     
-    year_ago = dt.date(2017,8,23) - dt.timedelta(days = 365)
-    last_day = session.query(measurement.date).order_by(measurement.date.desc()).first()
-    precipitation = session.query(measurement.date, measurement.prcp).\
-    filter(measurement.date > year_ago).order_by(measurement.date).all()
-
-
+    all_dates = {date:prcp for date, prcp in prcp_results}
+    
     precipitation = []
-    for date, prcp in rainfall:
+    for date, prcp in prcp_results:
         prcp_dict = {}
         prcp_dict["Date"] = date
         prcp_dict["Precipitation"] = prcp
@@ -64,6 +60,11 @@ def tobs():
     session = Session(engine)
     tobs_results = session.query(measurement.date, measurement.tobs).all()
     session.close()
+    
+    year_ago = dt.date(2017,8,23) - dt.timedelta(days = 365)
+    last_day = session.query(measurement.date).order_by(measurement.date.desc()).first()
+    precipitation = session.query(measurement.date, measurement.prcp).\
+    filter(measurement.date > year_ago).order_by(measurement.date).all()
 
     tobs_tobs = []
     for date, tobs in tobs_results:
