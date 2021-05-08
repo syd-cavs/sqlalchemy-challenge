@@ -26,6 +26,8 @@ def home_page():
         f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start>"
         f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/<start>"
+        f"/api/v1.0/<start>/<end>"
     )
 
 @app.route("/api/v1.0/precipitation")
@@ -74,10 +76,10 @@ def tobs():
 
     return jsonify(tobs_tobs)
 
-@app.route("/api/v1.0/temp/<start>")
+@app.route("/api/v1.0/<start>")
 def start_date(start):
     session = Session(engine)
-    start_results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+    start_results = session.query(measurement.date, func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
         filter(measurement.date >= start).all()
     session.close()
 
@@ -85,18 +87,17 @@ def start_date(start):
         
     return jsonify(temperatures)
 
-@app.route("/api/v1.0/temp/<start>/<end>")
-def startdate_enddate(start = None, end = None):
+@app.route("/api/v1.0/<start>/<end>")
+def startdate_enddate(start, end):
     session = Session(engine)
-    start_end_results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
-            filter(measurement.date >= start).\
-            filter(measurement.date <= end).all()
-
+    start_end_results = session.query(measurement.date, func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter(measurement.date >= start).\
+        filter(measurement.date <= end).all()
     session.close()
 
     start_end = list(np.ravel(start_end_results))
 
-    return jsonify(start_end_results)
+    return jsonify(start_end)
 
 if __name__ == '__main__':
     app.run(debug=True)
