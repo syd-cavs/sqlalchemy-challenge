@@ -58,22 +58,22 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
     session = Session(engine)
-    tobs_results = session.query(measurement.date, measurement.tobs).all()
+    tobs_results = session.query(measurement.date,  measurement.tobs, measurement.prcp).\
+        filter(measurement.date >= '2016-08-23').\
+        filter(measurement.station =='USC00519281').\
+        order_by(measurement.date).all()
     session.close()
     
-    year_ago = dt.date(2017,8,23) - dt.timedelta(days = 365)
-    last_day = session.query(measurement.date).order_by(measurement.date.desc()).first()
-    precipitation = session.query(measurement.date, measurement.prcp).\
-    filter(measurement.date > year_ago).order_by(measurement.date).all()
-
-    tobs_tobs = []
-    for date, tobs in tobs_results:
+    tobs_tobs = []   
+    for prcp, date, tobs in tobs_results:
         tobs_dict = {}
-        tobs_dict["Date"] = date
-        tobs_dict["Observations"] = tobs
-        precipitation.append(tobs_dict)
+        tobs_dict["prcp"] = prcp
+        tobs_dict["date"] = date
+        tobs_dict["tobs"] = tobs
+        tobs_tobs.append(tobs_dict)
 
-    return jsonify([tobs_tobs])
+    return jsonify(tobs_tobs)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
