@@ -12,7 +12,8 @@ engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 Base = automap_base()
 Base.prepare(engine, reflect=True)
 
-Passenger = Base.classes.passenger
+measurement = Base.classes.measurement
+station = Base.classes.station
 
 app = Flask(__name__)
 
@@ -28,14 +29,9 @@ def home_page():
         f"/api/v1.0/<start>/<end>"
     )
 
-
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    # Create our session (link) from Python to the DB
     session = Session(engine)
-
-    """Return a list of all passenger names"""
-    # Query all passengers
     results = session.query(Passenger.name).all()
 
     session.close()
@@ -48,25 +44,12 @@ def precipitation():
 
 @app.route("/api/v1.0/stations")
 def stations():
-    # Create our session (link) from Python to the DB
     session = Session(engine)
-
-    """Return a list of passenger data including the name, age, and sex of each passenger"""
-    # Query all passengers
-    results = session.query(Passenger.name, Passenger.age, Passenger.sex).all()
-
+    results = session.query(station.station).all()
     session.close()
+    all_stations = list(np.ravel(results))
 
-    # Create a dictionary from the row data and append to a list of all_passengers
-    all_passengers = []
-    for name, age, sex in results:
-        passenger_dict = {}
-        passenger_dict["name"] = name
-        passenger_dict["age"] = age
-        passenger_dict["sex"] = sex
-        all_passengers.append(passenger_dict)
-
-    return jsonify(all_passengers)
+    return jsonify(all_stations)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
